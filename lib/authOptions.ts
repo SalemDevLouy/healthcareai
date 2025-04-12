@@ -20,50 +20,53 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
-        // Check patient first
+        // Check patient
         const patient = await db.patient.findUnique({
-          where: { email: credentials.email }, // Match schema field
+          where: { email: credentials.email },
         });
-
         if (patient) {
-          const passwordMatch = await compare(credentials.password, patient.password); // Schema: Password
+          const passwordMatch = await compare(
+            credentials.password,
+            patient.password
+          );
           if (!passwordMatch) {
             return null;
           }
           return {
-            id: patient.id.toString(), // Convert Int to string for NextAuth
-            name: `${patient.firstname} ${patient.lastname}`, // Schema: Firstname, Lastname
-            email: patient.email, // Schema: Email
-            phone: patient.phone || null, // Schema: Phone (nullable)
+            id: patient.id.toString(),
+            name: `${patient.firstname} ${patient.lastname}`,
+            email: patient.email,
+            phone: patient.phone || null,
             role: "patient",
           };
         }
 
-        // Check admin if patient not found
+        // Check admin
         const admin = await db.admin.findUnique({
-          where: { email: credentials.email }, // Match schema field
+          where: { email: credentials.email },
         });
-
         if (admin) {
-          const passwordMatch = await compare(credentials.password, admin.password); // Schema: Password
+          const passwordMatch = await compare(
+            credentials.password,
+            admin.password
+          );
           if (!passwordMatch) {
             return null;
           }
           return {
-            id: admin.id.toString(), // Convert Int to string for NextAuth
-            name: `${admin.firstname} ${admin.lastname}`, // Schema: Firstname, Lastname
-            email: admin.email, // Schema: Email
-            phone: null, // Admin has no Phone field
+            id: admin.id.toString(),
+            name: `${admin.firstname} ${admin.lastname}`,
+            email: admin.email,
+            phone: null,
             role: "admin",
           };
         }
 
-        // No user found
         return null;
       },
     }),
