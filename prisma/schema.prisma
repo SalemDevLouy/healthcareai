@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        Int    @id @default(autoincrement()) @map("ID_A")
+  firstname String @map("Firstname") @db.VarChar(100)
+  lastname  String @map("Lastname") @db.VarChar(100)
+  email     String @unique @map("Email") @db.VarChar(100)
+  password  String @map("Password") @db.VarChar(100)
+
+  @@map("admin")
+}
+model Appointment {
+  id          Int               @id @default(autoincrement()) @map("ID_App")
+  patientId   Int?              @map("patient_id")
+  familyFname String?           @map("family_fname") @db.VarChar(50)
+  familyLname String?           @map("family_lname") @db.VarChar(50)
+  date        DateTime?         @map("date") @db.Date
+  time        DateTime?         @map("time") @db.Time(0)
+  notes       String?           @map("notes") @db.VarChar(255)
+  status      AppointmentStatus @default(Pending) @map("status")
+  phone       String?           @map("phone") @db.VarChar(20)
+  email       String            @map("email") @db.VarChar(100)
+  @@index([patientId], map: "appointment_patient_id_fkey")
+  @@map("appointment")
+}
+
+model Patient {
+  id          Int         @id @default(autoincrement()) @map("ID_P")
+  firstname   String      @map("Firstname") @db.VarChar(100)
+  lastname    String      @map("Lastname") @db.VarChar(100)
+  dateOfBirth DateTime?   @map("DateOfBirth") @db.Date
+  email       String      @unique @map("Email") @db.VarChar(100)
+  password    String      @map("Password") @db.VarChar(100)
+  gender      Gender?     @map("Gender")
+  phone       String?     @map("Phone") @db.VarChar(20)
+  accountType AccountType @default(Standard) @map("accountType")
+  address     String?     @map("address") @db.Text
+  location    String?     @map("location") @db.Text
+
+  @@map("patient")
+}
+
+enum AccountType {
+  Standard
+  Premium
+}
+
+enum Gender {
+  Male
+  Female
+}
+
+enum AppointmentStatus {
+  Pending
+  Confirmed
+  Cancelled
+}
+
+//npx prisma db push --accept-data-loss
+//npx prisma generate
+//npx prisma migrate dev --name init
